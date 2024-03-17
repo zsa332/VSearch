@@ -1,0 +1,36 @@
+* {
+	padding: 0;
+	margin:0;
+}
+
+.nav {
+	margin: 0;
+	padding: 0;
+	list-style-type: none;
+	width: 100%;
+	border-color: #04AA6D;
+	overflow: hidden;
+	background-color: #333;
+}
+
+.navLi {
+	float: left;
+}
+
+.navLi a {
+	display: block;
+	color: white;
+	text-align: center;
+	margin: 0;
+	padding: 14px 16px;
+	text-decoration: none;
+	font-size: 17px;
+}
+
+.navLi a:hover:not(.active) {
+	background-color: #111;
+}
+
+.active {
+	background-color: #04AA6D;
+}

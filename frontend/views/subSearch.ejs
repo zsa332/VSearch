@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>subpage</title>
+    <link rel='stylesheet' href='/stylesheets/nav.css' />
+    <link rel='stylesheet' href='/stylesheets/subSearch.css' />
+  </head>
+  <body>
+    <ul class="nav">
+      <li class="navLi"><a href="/">VSearch</a></li>
+      <li class="navLi" style="float:right"><a class="active" href="/login">Login</a></li>
+      <li class="navLi" style="float:right"><a href="/">MyPage</a></li>
+    </ul>
+    
+    <div class="back">
+      <div class="main">
+        <h2 id="videoName"></h2>
+        <hr>
+        <video id="mainVideo" controls></video>
+
+        <div id="progressDiv" class="progressDiv" style="margin: auto; width: 720px; height: 20px;" >
+          <div id="currentBar" class="currentBar" ></div>
+        </div>
+        <div> 검색어 : <div id="searchText"></div></div>
+        <br>
+        <h3>검색</h3>
+        <hr>
+        <div id="objectList" class="objectList"></div>
+
+        <div class="search">
+          <input id="search_in" class="search_in" type="text" placeholder="검색어 입력">
+          <button class="searchBtn" type="button" onclick = "searchTime(event)">search</button>
+        </div>
+
+        <hr>
+        <h3>타임라인</h3>
+        <hr>
+        <div id="timeList" class="timeList">
+          <div class="timeA">객체명</div>
+          <div class="timeB" >타임라인</div>
+        </div>
+      </div>
+    </div>
+    
+
+
+    <script>
+      var fileName = window.location.pathname;
+      fileName = fileName.replace("/search/","");
+      
+      function videoSet(){
+        var videoSrc = "http://202.31.147.195:7778/api/video/stream/"+fileName;
+        var video = document.getElementById("mainVideo");
+        video.src = videoSrc;
+      }
+      videoSet();
+
+      function objectBtnSet(){
+        var reqUrl = "http://202.31.147.195:7778/api/urban-ai/object-list/"+fileName;
+        fetch(reqUrl, {
+          method: "GET"
+        })
+        .then((response) => {
+          return response.json();
+        })
+        .then((json) => {
+          var videoName = document.getElementById("videoName");
+          videoName.innerText=json.title;
+          for(var i = 0; i < json.objectList.length; i++){
+            createObjectBtn(json.objectList[i]);
+            createTimeList(json.objectList[i]);
+          }
+        });
+      }
+      objectBtnSet();
+      
+      function createObjectBtn(objectName){
+        var listDiv = document.getElementById("objectList");
+
+        var btn = document.createElement("INPUT");
+        btn.type="button";
+        btn.value=objectName;
+        btn.className="objectBtn";
+        btn.addEventListener("click", function(event){
+          var search = document.getElementById("search_in");
+          var searchText = document.getElementById("searchText");
+          var searchArr = search.value.split(",");
+          if(search.value == ""){
+            search.value = event.target.value;
+          }
+          else if(search.value.includes(event.target.value)){
+            var delTarget = ", "+event.target.value;
+            var value = "";
+            for(var i = 0; i < searchArr.length; i++){
+              if(searchArr[i].includes(event.target.value)){
+                value = searchArr[i] + ",";
+                if(i == searchArr.length-1){
+                  value = ","+searchArr[i];
+                }
+              }
+            }
+            search.value = search.value.replace(value, "");
+          }
+          else {
+            search.value = search.value + ", " + event.target.value;
+          }
+        });
+
+        
+        listDiv.appendChild(btn);
+      }
+
+      function searchTime(event){
+        var content = document.getElementById("search_in").value;
+        document.getElementById("searchText").innerText = content;
+        fetch("http://202.31.147.195:7778/api/urban-ai/time-search", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id : fileName,
+            content : content,
+          }),
+        })
+        .then((response) => {
+          return response.json();
+        })
+        .then((json) => {
+          console.log(json);
+          setProgressBar(json.timeStr);
+        });
+      }
+
+      function setProgressBar(timeLog){
+        var currentBar = document.getElementById("currentBar");
+        var progressDiv = document.getElementById("progressDiv");
+        progressDiv.innerHTML="";
+        progressDiv.appendChild(currentBar);
+        var time = timeLog.substring(2);
+        var timeArr = time.split(",");
+        var check = 1;
+        var size = 0;
+        var prev = 0;
+        var maxSize = 720;
+        for(var i = 0; i < timeArr.length; i++){
+          if(timeArr[i] == prev){
+            check++;
+          }
+          else if(timeArr[i] != prev){
+            size =check/timeArr.length;
+            size = 720*size;
+            size =Math.round(size * 100)/100;
+            maxSize = maxSize-size;
+            var div = document.createElement("div");
+            div.className = prev == 0 ? "blankDiv" : "inDiv";
+            div.style.width =size+"px";
+            div.style.height = 20+"px";
+            div.style.backgroundColor = prev == 0 ? "#333" : "#007AFF";
+            div.style.display="inline-block";
+            progressDiv.appendChild(div);
+            prev = timeArr[i];
+            check = 1;
+          }
+          if(i == timeArr.length-1){
+            var div = document.createElement("div");
+            div.className = prev == 0 ? "blankDiv" : "inDiv";
+            div.style.width = maxSize+"px";
+            div.style.height = 20+"px";
+            div.style.backgroundColor = prev == 0 ? "#333" : "#007AFF";
+            div.style.display="inline-block";
+            progressDiv.appendChild(div);
+          }
+        }
+      }
+      
+      function createTimeList(objectName){
+        fetch("http://202.31.147.195:7778/api/urban-ai/time-search", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id : fileName,
+            content : objectName,
+          }),
+        })
+        .then((response) => {
+          return response.json();
+        })
+        .then((json) => {
+          setTimeList(json.timeStr,objectName);
+        });
+      }
+
+      function setTimeList(timeLog, objectName){
+        var timeDiv = document.createElement("DIV");
+        var timeLine = document.createElement("DIV");
+        timeDiv.className="timeDiv";
+        timeLine.innerHTML="";
+        timeLine.className="timeLine";
+        var time = timeLog.substring(2);
+        var timeArr = time.split(",");
+        var check = 1;
+        var size = 0;
+        var prev = 0;
+        var maxSize = 480;
+        timeLine.style.width=maxSize;
+        for(var i = 0; i < timeArr.length; i++){
+          if(timeArr[i] == prev){
+            check++;
+          }
+          else if(timeArr[i] != prev){
+            size =check/timeArr.length;
+            size = 480*size;
+            size =Math.round(size * 100)/100;
+            maxSize = maxSize-size;
+            var div = document.createElement("div");
+            div.className = prev == 0 ? "blankDiv" : "inDiv";
+            div.style.width =size+"px";
+            div.style.height = 20+"px";
+            div.style.backgroundColor = prev == 0 ? "#333" : "#007AFF";
+            div.style.display="inline-block";
+            timeLine.appendChild(div);
+            prev = timeArr[i];
+            check = 1;
+          }
+          if(i == timeArr.length-1){
+            var div = document.createElement("div");
+            div.className = prev == 0 ? "blankDiv" : "inDiv";
+            div.style.width = maxSize+"px";
+            div.style.height = 20+"px";
+            div.style.backgroundColor = prev == 0 ? "#333" : "#007AFF";
+            div.style.display="inline-block";
+            timeLine.appendChild(div);
+          }
+        }
+        timeLine.addEventListener("click", function(event){
+          var start = timeLine.getBoundingClientRect().left;
+          var clientX = event.clientX-start;
+          var target = Math.round(clientX / 480 * 100)/100;
+          var video = document.getElementById("mainVideo");
+          var targetTime = Math.round(video.duration*target);
+          video.currentTime=targetTime;
+        },false);
+        var h3 = document.createElement("H3");
+        h3.className="timeH";
+        h3.innerText=objectName;
+        timeDiv.appendChild(h3);
+        timeDiv.appendChild(timeLine);
+        var timeList = document.getElementById("timeList");
+        timeList.appendChild(timeDiv);
+      }
+
+      function clickProgressBar(){
+        var progressDiv = document.getElementById("progressDiv");
+        progressDiv.addEventListener("click", function(event){
+          var start = progressDiv.getBoundingClientRect().left;
+          var clientX = event.clientX-start;
+          var target = Math.round(clientX / 720 * 100)/100;
+          var video = document.getElementById("mainVideo");
+          var targetTime = Math.round(video.duration*target);
+          video.currentTime=targetTime;
+        },false);
+      }
+      clickProgressBar();
+
+      function currentBar(){
+        var video = document.getElementById("mainVideo");
+        video.addEventListener('timeupdate',function(event){
+          var progressDiv = document.getElementById("progressDiv");
+          var currentBar = document.getElementById("currentBar");
+          var start = progressDiv.getBoundingClientRect().left;
+          var currentVideo = video.currentTime/video.duration;
+          var current = Math.round(720*currentVideo);
+          console.log(current);
+          // var target = Math.round(clientX / 480 * 100)/100;
+          currentBar.style.left = start+current+"px";
+        });
+      }
+      currentBar();
+    </script>
+  </body>
+</html>

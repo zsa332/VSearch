@@ -1,0 +1,43 @@
+plugins {
+    id 'org.springframework.boot' version '2.7.4'
+    id 'io.spring.dependency-management' version '1.0.14.RELEASE'
+    id 'java'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+    implementation 'com.vladmihalcea:hibernate-types-52:2.19.2'
+    implementation 'org.javassist:javassist:3.29.0-GA'
+    implementation 'org.bytedeco:ffmpeg:5.0-1.5.7'
+    implementation 'org.bytedeco:javacpp:1.5.7'
+    implementation 'org.bytedeco:javacv-platform:1.5.7'
+    implementation 'io.jsonwebtoken:jjwt:0.9.1'
+    implementation 'org.jcodec:jcodec-javase:0.2.5'
+    implementation 'org.jcodec:jcodec:0.2.5'
+    compileOnly 'org.projectlombok:lombok'
+    runtimeOnly 'org.postgresql:postgresql'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

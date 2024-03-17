@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VSearch</title>
+    <link rel='stylesheet' href='/stylesheets/nav.css' />
+    <link rel='stylesheet' href='/stylesheets/main.css' />
+  </head>
+  <body>
+    <ul class="nav">
+      <li class="navLi"><a href="/">VSearch</a></li>
+      <li class="navLi" style="float:right"><a class="active" href="/login">Login</a></li>
+      <li class="navLi" style="float:right"><a href="/">MyPage</a></li>
+    </ul>
+    <div class="back">
+      <div class="main">
+        <h1>VSearch</h1>
+        <div class="search">
+          <input id="search_in" type="text" placeholder="검색어 입력">
+          <button type="button" onclick = "searchObject();">검색</button>
+        </div>
+        <hr>
+        <div id="videoList"></div>
+        <p></p>
+      </div>
+    </div>
+    <script>
+      function init(){
+        var content = "";
+        fetch("http://202.31.147.195:7778/api/urban-ai/final-search", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            content: content,
+          }),
+        })
+        .then((response) => {
+          return response.json();
+        })
+        .then((json) => {
+          console.log(json);
+          for(var i = 0; i < json.length; i++){
+            createVideoDiv(json[i].id, json[i].fileName);
+          }
+        });
+      }
+      init();
+
+      function searchObject(){
+        var content = document.getElementById("search_in").value;
+        // console.log(content);
+        fetch("http://202.31.147.195:7778/api/urban-ai/final-search", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            content: content,
+          }),
+        })
+        .then((response) => {
+          return response.json();
+        })
+        .then((json) => {
+          var videoList = document.getElementById("videoList");
+          videoList.innerHTML="";
+          for(var i = 0; i < json.length; i++){
+            createVideoDiv(json[i].id, json[i].fileName);
+          }
+        });
+      }
+
+      function createVideoDiv(id, fileName){
+        var card = document.createElement("DIV");
+        card.className="card";
+        
+        var cardHeader = document.createElement("DIV");
+        cardHeader.className="card-header";
+
+        var videoImg = document.createElement("IMG");
+        var imgSrc = "http://202.31.147.195:7778/api/video/thumbnail/"+id;
+        videoImg.src = imgSrc;
+        cardHeader.appendChild(videoImg);
+
+        var cardBody = document.createElement("DIV");
+        cardBody.className="card-body";
+        var h4 = document.createElement("H4");
+        h4.innerText = fileName;
+        cardBody.appendChild(h4);
+        
+        card.appendChild(cardHeader);
+        card.appendChild(cardBody);
+
+        card.value = id;
+
+        card.addEventListener('click',function(event){
+          location.href = "/search/"+card.value;
+        });
+
+        var videoList = document.getElementById("videoList");
+        videoList.appendChild(card);
+      }
+    </script>
+  </body>
+</html>

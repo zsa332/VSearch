@@ -1,0 +1,46 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel='stylesheet' href='/stylesheets/nav.css' />
+</head>
+<body>
+    <ul class="nav">
+        <li class="navLi"><a href="/">VSearch</a></li>
+        <li class="navLi" style="float:right"><a class="active" href="/login">Login</a></li>
+        <li class="navLi" style="float:right"><a href="/">MyPage</a></li>
+    </ul>
+    <div>
+        <h2>로그인</h2>
+        <input id="username" type="text"/>
+        <input id="password" type="text"/>
+        <button onclick="login();">Login</button>
+        <a href="/register">회원가입</a>
+    </div>
+
+    <script>
+        function login(){
+            var username = document.getElementById("username").value;
+            var password = document.getElementById("password").value;
+            fetch("http://202.31.147.195:7778/api/user/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                }),
+                })
+                .then((response) => {
+                    return response.json();
+                })
+                .then((json) => {
+                    console.log(json);
+                });
+            }
+    </script>
+</body>
+</html>
